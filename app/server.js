@@ -6,6 +6,10 @@ const port = 3000;
 const hostname = "localhost";
 
 const env = require("../env.json");
+
+const nutritionKey = env.nutrition_api_key;
+const calorieKey = env.calories_API_key;
+
 const Pool = pg.Pool;
 const pool = new Pool(env);
 pool.connect().then(function () {
@@ -13,8 +17,6 @@ pool.connect().then(function () {
 });
 
 app.use(express.static("public"));
-
-/* YOUR CODE HERE */
 
 app.listen(port, hostname, () => {
   console.log(`Listening at: http://${hostname}:${port}`);
