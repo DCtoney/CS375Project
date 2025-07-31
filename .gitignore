@@ -3,3 +3,4 @@ node_modules/
 
 # Ignore environment configuration
 env.json
+env.json
