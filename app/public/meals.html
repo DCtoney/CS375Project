@@ -14,5 +14,35 @@
             <li><a href="meals.html">Meal Tracker</a></li>
         </ul>
     </nav>
+
+    <div class="form">
+      <div>
+        <label for="Meal">Meal:</label>
+        <input type="text" id="meal" required>
+      </div>
+      <div>
+        <button id="addMeal">Add Meal</button>
+      </div>
+    </div>
+
+    <table> 
+      <thead>
+        <tr><th>Name</th></tr>
+        <tr><th>Calories</th></tr>
+        <tr><th>Serving Size (g)</th></tr>
+        <tr><th>Total Fat (g)</th></tr>
+        <tr><th>Saturated Fat (g)</th></tr>
+        <tr><th>Protein (g)</th></tr>
+        <tr><th>Sodium (mg)</th></tr>
+        <tr><th>Potassium (mg)</th></tr>
+        <tr><th>Cholesterol (mg)</th></tr>
+        <tr><th>Total Carbohydrates (g)</th></tr>
+        <tr><th>Fiber (g)</th></tr>
+        <tr><th>Sugar (g)</th></tr>
+      </thead>
+      <tbody id = "mealList"></tbody>
+    </table>
+
+    <script src="assets/js/meals.js"></script>
   </body>
 </html>
