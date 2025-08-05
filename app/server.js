@@ -20,33 +20,6 @@ app.listen(port, hostname, () => {
   console.log(`Listening at: http://${hostname}:${port}`);
 });
 
-// GET for Calorie Calculation
-app.get("/api/calories", async (req, res) => {
-  const { age, gender, height, weight, activitylevel } = req.query;
-
-  const url = new URL(`${env.calories_API_url}/dailycalorie`);
-  url.searchParams.append("age", age);
-  url.searchParams.append("gender", gender);
-  url.searchParams.append("height", height);
-  url.searchParams.append("weight", weight);
-  url.searchParams.append("activitylevel", activitylevel);
-
-  try {
-    const response = await fetch(url.toString(), {
-      headers: {
-        "x-rapidapi-key": env.calories_API_key,
-        "x-rapidapi-host": "fitness-calculator.p.rapidapi.com"
-      }
-    });
-
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
 // GET for Nutrition Data
 app.get("/api/nutrition", async (req, res) => {
   const meal = req.query.meal;

@@ -1,7 +1,7 @@
 document.getElementById("addMeal").addEventListener("click", () => {
     let meal = document.getElementById("meal").value;
 
-    let url = new URL("/api/nutrition", window.location.origin);
+    let url = new URL("/api/nutrition", "http://localhost:3000/nutrition");
     url.searchParams.append("query", meal);
 
     fetch(url)
@@ -20,5 +20,5 @@ document.getElementById("addMeal").addEventListener("click", () => {
       .catch(error => {
         console.error(error);
         document.getElementById("mealResult").textContent = "Error fetching nutrition data. Please try again.";
-      }
+      });
 });
