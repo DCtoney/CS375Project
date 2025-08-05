@@ -4,7 +4,9 @@
     "setup": "psql -U postgres -f setup.sql"
   },
   "dependencies": {
+    "axios": "^1.11.0",
     "express": "^4.21.2",
+    "node-fetch": "^3.3.2",
     "pg": "^8.16.3"
   }
 }

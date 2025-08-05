@@ -1,8 +1,8 @@
 document.getElementById("addMeal").addEventListener("click", () => {
     let meal = document.getElementById("meal").value;
 
-    let url = new URL("/api/nutrition", "http://localhost:3000/nutrition");
-    url.searchParams.append("query", meal);
+    let url = new URL("/api/nutrition", window.location.origin);
+    url.searchParams.append("meal", meal);
 
     fetch(url)
       .then(response => {
