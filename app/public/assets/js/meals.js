@@ -14,8 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
         let target = parseInt(localStorage.getItem("dailyCalries")) || 2000;
         let dif = totalCalories - target;
 
-        let color = black;
-        if (diff >= 150) color = "red";
+        let color = "black";
+        if (dif >= 150) color = "red";
         else if (dif >= 100) color = "orange";
         else if (dif >= 50) color = "yellow";
         else if (dif >= 0) color = "green";
@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateCalorieDisplay();
     });
 
-    document.getElemebtById("downloadDay").addEventListener("click", () => {
+    document.getElementById("downloadDay").addEventListener("click", () => {
         if (allDayData.length === 0) {
             alert("No day data to download.");
             return;
@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let link = document.createElement("a");
         link.href = url;
 
-        let filename = 'meal_log_${new Date().toISOString().split("T")[0]}.json';
+        let filename = "meal_log_" + new Date().toISOString().split("T")[0] + ".json";
         link.download = filename;
 
         document.body.appendChild(link);
