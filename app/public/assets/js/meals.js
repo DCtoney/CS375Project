@@ -1,7 +1,8 @@
-document.getElementById("addMeal").addEventListener("click", () => {
-    let meal = document.getElementById("meal").value;
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("addMeal").addEventListener("click", () => {
+    const meal = document.getElementById("meal").value;
 
-    let url = new URL("/api/nutrition", window.location.origin);
+    const url = new URL("/api/nutrition", window.location.origin);
     url.searchParams.append("meal", meal);
 
     fetch(url)
@@ -10,15 +11,37 @@ document.getElementById("addMeal").addEventListener("click", () => {
         return response.json();
       })
       .then(result => {
-        if (result.items && result.items.length > 0) {
-            let item = result.items[0];
-            document.getElementById("mealResult").innerHTML = 'Meal: ${item.name}, Calories: ${item.calories}'; 
-        } else {
-            document.getElementById("mealResult").textContent = "No nutrition data found for this meal.";
+        const mealList = document.getElementById("mealList");
+
+        if (!result.items || result.items.length === 0) {
+          mealList.innerHTML = "<tr><td colspan='12'>No nutrition data found for this meal.</td></tr>";
+          return;
         }
+
+        const item = result.items[0]; // Get first match
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.name}</td>
+          <td>${item.calories}</td>
+          <td>${item.serving_size_g}</td>
+          <td>${item.fat_total_g}</td>
+          <td>${item.fat_saturated_g}</td>
+          <td>${item.protein_g}</td>
+          <td>${item.sodium_mg}</td>
+          <td>${item.potassium_mg}</td>
+          <td>${item.cholesterol_mg}</td>
+          <td>${item.carbohydrates_total_g}</td>
+          <td>${item.fiber_g}</td>
+          <td>${item.sugar_g}</td>
+        `;
+
+        mealList.appendChild(row);
       })
       .catch(error => {
         console.error(error);
-        document.getElementById("mealResult").textContent = "Error fetching nutrition data. Please try again.";
+        const mealList = document.getElementById("mealList");
+        mealList.innerHTML = "<tr><td colspan='12'>Error fetching nutrition data.</td></tr>";
       });
+  });
 });
