@@ -3,6 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let mealInput = document.getElementById("meal");
     let mealHistory = document.getElementById("mealHistory");
 
+    let currentDayMeals = [];
+    let allDayData = [];
+
     let totalCalories = 0;
     let calorieDisplay = document.getElementById("dailyTotal");
     document.body.insertBefore(calorieDisplay, document.querySelector("table"));
@@ -62,6 +65,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
             totalCalories += Math.round(item.calories);
             updateCalorieDisplay();
+
+            currentDayMeals.push({
+                name: item.name,
+                calories: item.calories,
+                serving_size_g: item.serving_size_g,
+                fat_total_g: item.fat_total_g,
+                fat_saturated_g: item.fat_saturated_g,
+                protein_g: item.protein_g,
+                sodium_mg: item.sodium_mg,
+                potassium_mg: item.potassium_mg,
+                cholesterol_mg: item.cholesterol_mg,
+                carbohydrates_total_g: item.carbohydrates_total_g,
+                fiber_g: item.fiber_g,
+                sugar_g: item.sugar_g
+            });
         })
         .catch(error => {
             console.error(error);
@@ -91,6 +109,14 @@ document.addEventListener("DOMContentLoaded", () => {
         </thead>
         `;
 
+        let target = parseInt(localStorage.getItem("dailyCalries")) || 2000;
+        allDayData.push({
+            date: new Date().toLocaleDateString(),
+            totalCalories: totalCalories,
+            calorieTarget: target,
+            meals: currentDayMeals
+        });
+
         const copiedBody = mealList.cloneNode(true);
         table.appendChild(copiedBody);
 
@@ -106,8 +132,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
         mealList.innerHTML = "";
         totalCalories = 0;
+        currentDayMeals = [];
         updateCalorieDisplay();
     });
 
-    updateCalorieDisplay
+    document.getElemebtById("downloadDay").addEventListener("click", () => {
+        if (allDayData.length === 0) {
+            alert("No day data to download.");
+            return;
+        }
+
+        let profileData = JSON.parse(localStorage.getItem("userProfile")) || {
+            age: null,
+            gender: null,
+            height: null,
+            weight: null,
+            activity: null,
+            dailyCalories: null
+        };
+
+        let exportData = {
+            user: profileData,
+            history: allDayData
+        };
+
+        let blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+        let url = URL.createObjectURL(blob);
+        let link = document.createElement("a");
+        link.href = url;
+
+        let filename = 'meal_log_${new Date().toISOString().split("T")[0]}.json';
+        link.download = filename;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    });
+
+    updateCalorieDisplay();
 });

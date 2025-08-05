@@ -40,7 +40,13 @@ document.getElementById("calculate").addEventListener("click", () => {
             amr = bmr * 1.2;
     }
 
+    let userProfile = {
+        age, gender, height, weight, activity, amr
+    };
+
     document.getElementById("result").innerHTML = 
         `Your daily calorie needs are approximately ${amr.toFixed(2)} calories.`;
+        
+    localStorage.setItem("userProfile", JSON.stringify(userProfile));
     localStorage.setItem("dailyCalries", Math.round(amr));
 });
