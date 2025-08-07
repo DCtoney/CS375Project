@@ -14,5 +14,42 @@
             <li><a href="meals.html">Meal Tracker</a></li>
         </ul>
     </nav>
+
+    <div class="form">
+      <div>
+        <label>Meal:</label>
+        <input type="text" id="meal" required>
+      </div>
+      <div>
+        <button id="addMeal">Add Meal</button>
+        <button id="endDay">End Day</button>
+        <button id="downloadDay">Download Day</button>
+      </div>
+    </div>
+
+    <h2 id="dailyTotal">Total Calories Today: 0</h2>
+    <table> 
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Calories</th>
+          <th>Serving Size (g)</th>
+          <th>Total Fat (g)</th>
+          <th>Saturated Fat (g)</th>
+          <th>Protein (g)</th>
+          <th>Sodium (mg)</th>
+          <th>Potassium (mg)</th>
+          <th>Cholesterol (mg)</th>
+          <th>Total Carbohydrates (g)</th>
+          <th>Fiber (g)</th>
+          <th>Sugar (g)</th>
+        </tr>
+      </thead>
+      <tbody id = "mealList"></tbody>
+    </table>
+
+    <h2>Meal History</h2>
+    <div id="mealHistory"></div>
+    <script src="assets/js/meals.js"></script>
   </body>
 </html>
