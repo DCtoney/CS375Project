@@ -171,4 +171,102 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     updateCalorieDisplay();
+
+    // Auto-load user profile from localStorage (if exists)
+    function loadUserProfile() {
+        const profile = JSON.parse(localStorage.getItem("userProfile"));
+        if (profile && profile.dailyCalories) {
+            localStorage.setItem("dailyCalries", profile.dailyCalories);
+        }
+    }
+
+    loadUserProfile();
+
+    document.getElementById("importJson").addEventListener("click", () => {
+        document.getElementById("importFile").click();
+    });
+
+    document.getElementById("importFile").addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+            const imported = JSON.parse(text);
+
+            if (imported.user) {
+                localStorage.setItem("userProfile", JSON.stringify(imported.user));
+                if (imported.user.dailyCalories) {
+                    localStorage.setItem("dailyCalries", imported.user.dailyCalories);
+                }
+            }
+
+            // Replace meal history
+            if (Array.isArray(imported.history)) {
+                allDayData = imported.history;
+
+                // Clear and repopulate meal history section
+                mealHistory.innerHTML = "";
+                imported.history.forEach(day => {
+                    const table = document.createElement("table");
+                    table.innerHTML = `
+                    <thead>
+                        <tr>
+                        <th>Name</th>
+                        <th>Calories</th>
+                        <th>Serving Size (g)</th>
+                        <th>Total Fat (g)</th>
+                        <th>Saturated Fat (g)</th>
+                        <th>Protein (g)</th>
+                        <th>Sodium (mg)</th>
+                        <th>Potassium (mg)</th>
+                        <th>Cholesterol (mg)</th>
+                        <th>Total Carbohydrates (g)</th>
+                        <th>Fiber (g)</th>
+                        <th>Sugar (g)</th>
+                        </tr>
+                    </thead>`;
+
+                    const body = document.createElement("tbody");
+                    day.meals.forEach(meal => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                        <td>${meal.name}</td>
+                        <td>${meal.calories}</td>
+                        <td>${meal.serving_size_g}</td>
+                        <td>${meal.fat_total_g}</td>
+                        <td>${meal.fat_saturated_g}</td>
+                        <td>${meal.protein_g}</td>
+                        <td>${meal.sodium_mg}</td>
+                        <td>${meal.potassium_mg}</td>
+                        <td>${meal.cholesterol_mg}</td>
+                        <td>${meal.carbohydrates_total_g}</td>
+                        <td>${meal.fiber_g}</td>
+                        <td>${meal.sugar_g}</td>
+                        `;
+                        body.appendChild(row);
+                    });
+
+                    table.appendChild(body);
+
+                    const dayLabel = document.createElement("h3");
+                    dayLabel.textContent = `Meals on ${day.date} (Total Calories: ${day.totalCalories})`;
+
+                    const historySection = document.createElement("div");
+                    historySection.appendChild(dayLabel);
+                    historySection.appendChild(table);
+
+                    mealHistory.appendChild(historySection);
+                });
+            }
+
+            updateCalorieDisplay();
+            alert("Data imported successfully!");
+        } catch (err) {
+            console.error("Import failed:", err);
+            alert("Invalid JSON file.");
+        }
+
+        e.target.value = "";
+    });
 });
