@@ -17,17 +17,25 @@
 
     <h1>Exercise Builder</h1>
 
-    <!-- Search Exercises -->
+    <!-- Available gear filter UI -->
+    <section id="gearFilterSection">
+      <h3>Available gear</h3>
+      <div>
+        <button id="equipAllBtn" type="button">Select all</button>
+        <button id="equipNoneBtn" type="button">Clear</button>
+      </div>
+      <div id="equipmentFilter"></div>
+    </section>
+
     <h2>Search Exercises</h2>
-    <label
-      >Exercise Name:
-      <input
-        type="text"
-        id="searchQuery"
-        placeholder="Search exercises..." /></label
-    ><br /><br />
-    <label
-      >Type:
+
+    <label>
+      Exercise Name:
+      <input type="text" id="searchQuery" placeholder="Search exercises..." />
+    </label>
+    <br /><br />
+    <label>
+      Type:
       <select id="filterType">
         <option value="">All Types</option>
         <option value="cardio">Cardio</option>
@@ -39,8 +47,8 @@
         <option value="strongman">Strongman</option>
       </select>
     </label>
-    <label
-      >Muscle:
+    <label>
+      Muscle:
       <select id="filterMuscle">
         <option value="">All Muscles</option>
         <option value="abdominals">Abdominals</option>
@@ -61,23 +69,28 @@
         <option value="triceps">Triceps</option>
       </select>
     </label>
-    <label
-      >Difficulty:
+    <label>
+      Difficulty:
       <select id="filterDifficulty">
         <option value="">All Difficulties</option>
         <option value="beginner">Beginner</option>
         <option value="intermediate">Intermediate</option>
         <option value="expert">Expert</option>
-      </select> </label
-    ><br /><br />
+      </select>
+    </label>
+    <br /><br />
     <button id="searchBtn">Search Exercises</button>
 
+    <div id="messages"></div>
     <div id="searchResults"></div>
 
     <hr />
 
-    <!-- Workout Plan Builder -->
     <h2>Build Your Workout Plan</h2>
+    <div>
+      <button id="exportTxtBtn" type="button">Export Template</button>
+    </div>
+
     <div>
       <button class="day-tab active" data-day="push">Push Day</button>
       <button class="day-tab" data-day="pull">Pull Day</button>
@@ -91,6 +104,8 @@
       <div id="workoutList"></div>
     </div>
 
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="/assets/js/exercise.js"></script>
   </body>
 </html>

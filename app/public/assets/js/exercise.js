@@ -1,5 +1,33 @@
-// Global variables
-let workoutPlan = {
+/* Exercise Builder front-end
+   - Uses Axios for API calls
+   - Adds gear filtering via checkboxes
+   - Maintains a formattedPlanText variable
+   - Exports the plan as a .txt file
+*/
+
+/* ========== Small utilities ========== */
+function $(q) {
+  return document.querySelector(q);
+}
+function cap(s) {
+  s = String(s || "");
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/* ========== Messaging helpers ========== */
+function showMessage(text, type) {
+  const box = $("#messages");
+  if (!box) return;
+  box.textContent = text || "";
+}
+function clearMessages() {
+  const box = $("#messages");
+  if (!box) return;
+  box.textContent = "";
+}
+
+/* ========== Workout state and UI ========== */
+const workoutPlan = {
   push: [],
   pull: [],
   legs: [],
@@ -9,153 +37,54 @@ let workoutPlan = {
 };
 let currentDay = "push";
 
-// DOM elements
-const searchBtn = document.getElementById("searchBtn");
-const searchResults = document.getElementById("searchResults");
-const dayTabs = document.querySelectorAll(".day-tab");
-const dayTitle = document.getElementById("dayTitle");
-const workoutList = document.getElementById("workoutList");
+function updateWorkoutDisplay() {
+  const list = workoutPlan[currentDay] || [];
+  const container = $("#workoutList");
+  if (!container) return;
 
-// Initialize the page
-document.addEventListener("DOMContentLoaded", function () {
-  setupEventListeners();
-  updateWorkoutDisplay();
-  // Load some default exercises on page load
-  searchExercises();
-});
-
-// Set up all event listeners
-function setupEventListeners() {
-  // Search functionality
-  searchBtn.addEventListener("click", searchExercises);
-
-  document
-    .getElementById("searchQuery")
-    .addEventListener("keypress", function (e) {
-      if (e.key === "Enter") {
-        searchExercises();
-      }
-    });
-
-  // Day tab switching
-  dayTabs.forEach((tab) => {
-    tab.addEventListener("click", function () {
-      switchDay(this.dataset.day);
-    });
-  });
-
-  // Real-time search when filters change
-  document
-    .getElementById("filterType")
-    .addEventListener("change", searchExercises);
-  document
-    .getElementById("filterMuscle")
-    .addEventListener("change", searchExercises);
-  document
-    .getElementById("filterDifficulty")
-    .addEventListener("change", searchExercises);
-}
-
-// Search exercises using API Ninjas
-async function searchExercises() {
-  const name = document.getElementById("searchQuery").value;
-  const type = document.getElementById("filterType").value;
-  const muscle = document.getElementById("filterMuscle").value;
-  const difficulty = document.getElementById("filterDifficulty").value;
-
-  const searchParams = new URLSearchParams();
-  if (name) searchParams.append("name", name);
-  if (type) searchParams.append("type", type);
-  if (muscle) searchParams.append("muscle", muscle);
-  if (difficulty) searchParams.append("difficulty", difficulty);
-
-  try {
-    showMessage("Searching exercises...", "info");
-
-    const response = await fetch(`/api/exercises/search?${searchParams}`);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const exercises = await response.json();
-    displayExercises(exercises);
-  } catch (error) {
-    console.error("Error searching exercises:", error);
-    showMessage("Error searching exercises. Please try again.", "error");
-  }
-}
-
-// Display exercises in the search results
-function displayExercises(exercises) {
-  // Clear any existing messages
-  clearMessages();
-
-  if (exercises.length === 0) {
-    searchResults.innerHTML =
-      "<p>No exercises found. Try adjusting your search criteria.</p>";
+  if (!list.length) {
+    container.innerHTML = "<p>No exercises added yet.</p>";
     return;
   }
 
-  searchResults.innerHTML =
-    "<h3>Search Results:</h3>" +
-    exercises
-      .map(
-        (exercise, index) => `
-        <div style="border: 1px solid #ccc; padding: 15px; margin: 10px 0;">
-            <h4>${exercise.name}</h4>
-            <p><strong>Type:</strong> ${exercise.type}</p>
-            <p><strong>Muscle:</strong> ${exercise.muscle}</p>
-            <p><strong>Equipment:</strong> ${exercise.equipment}</p>
-            <p><strong>Difficulty:</strong> ${exercise.difficulty}</p>
-            <p><strong>Instructions:</strong> ${exercise.instructions}</p>
-            <button onclick="addToCurrentDay('${exercise.name}', '${
-          exercise.type
-        }', '${exercise.muscle}', '${exercise.equipment}', '${
-          exercise.difficulty
-        }', '${exercise.instructions.replace(/'/g, "\\'")}')">
-                Add to ${
-                  currentDay.charAt(0).toUpperCase() + currentDay.slice(1)
-                } Day
-            </button>
-        </div>
-    `
-      )
-      .join("");
+  container.innerHTML = list
+    .map((ex, i) => {
+      const name = ex.name || ex.exercise || "Exercise";
+      const meta = [ex.type, ex.muscle, ex.equipment]
+        .filter(Boolean)
+        .join(" • ");
+      return (
+        "<div>" +
+        "<strong>" +
+        name +
+        "</strong>" +
+        (meta ? " — " + meta : "") +
+        ' <button data-i="' +
+        i +
+        '" class="remove-btn">Remove</button>' +
+        "</div>"
+      );
+    })
+    .join("");
+
+  container.querySelectorAll(".remove-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.dataset.i, 10);
+      (workoutPlan[currentDay] || []).splice(idx, 1);
+      updateWorkoutDisplay();
+      rebuildFormattedPlanText();
+    });
+  });
 }
 
-// Switch between different workout days
 function switchDay(day) {
   currentDay = day;
-
-  // Update active tab
-  dayTabs.forEach((tab) => {
-    tab.classList.toggle("active", tab.dataset.day === day);
-  });
-
-  // Update day title
-  dayTitle.textContent = day.charAt(0).toUpperCase() + day.slice(1) + " Day";
-
-  // Update workout display
+  const title = $("#dayTitle");
+  if (title) title.textContent = cap(day) + (/(day)$/i.test(day) ? "" : " Day");
   updateWorkoutDisplay();
-
-  // Update add buttons in search results
-  updateAddButtons();
+  rebuildFormattedPlanText();
 }
 
-// Update the add buttons in search results
-function updateAddButtons() {
-  const addButtons = document.querySelectorAll(
-    'button[onclick^="addToCurrentDay"]'
-  );
-  addButtons.forEach((button) => {
-    const dayName = currentDay.charAt(0).toUpperCase() + currentDay.slice(1);
-    const onclickValue = button.getAttribute("onclick");
-    button.textContent = `Add to ${dayName} Day`;
-  });
-}
-
-// Add exercise to current day
 function addToCurrentDay(
   name,
   type,
@@ -164,133 +93,316 @@ function addToCurrentDay(
   difficulty,
   instructions
 ) {
-  const exercise = {
-    name: name,
-    type: type,
-    muscle: muscle,
-    equipment: equipment,
-    difficulty: difficulty,
-    instructions: instructions,
-  };
-
-  // Check if exercise is already in the day
-  const existingExercise = workoutPlan[currentDay].find(
-    (ex) => ex.name === name
-  );
-  if (existingExercise) {
-    showMessage("Exercise already added to this day!", "error");
-    return;
-  }
-
-  workoutPlan[currentDay].push(exercise);
+  (workoutPlan[currentDay] || (workoutPlan[currentDay] = [])).push({
+    name,
+    type,
+    muscle,
+    equipment,
+    difficulty,
+    instructions,
+  });
   updateWorkoutDisplay();
-  showMessage(`${name} added to ${currentDay} day!`, "success");
+  rebuildFormattedPlanText();
 }
 
-// Update the workout plan display
-function updateWorkoutDisplay() {
-  const currentWorkouts = workoutPlan[currentDay];
+/* ========== Gear filtering ========== */
+const availableEquipment = new Set();
+let selectedEquipment = new Set();
 
-  if (currentWorkouts.length === 0) {
-    workoutList.innerHTML =
-      "<p>No exercises added yet. Search for exercises above and add them to this day.</p>";
+async function loadEquipmentList() {
+  // Builds the equipment list by sampling existing endpoints so no server change is required.
+  const endpoints = [
+    "/api/exercises/search",
+    "/api/exercises/type/strength",
+    "/api/exercises/type/cardio",
+    "/api/exercises/type/stretching",
+  ];
+
+  for (const url of endpoints) {
+    try {
+      const res = await axios.get(url);
+      const items = Array.isArray(res.data) ? res.data : [];
+      items.forEach((ex) => {
+        if (ex && ex.equipment) availableEquipment.add(String(ex.equipment));
+      });
+    } catch (_) {
+      // ignore and continue
+    }
+  }
+}
+
+function renderEquipmentFilter() {
+  const host = $("#equipmentFilter");
+  if (!host) return;
+
+  if (availableEquipment.size === 0) {
+    host.innerHTML = "<p>No equipment options available</p>";
     return;
   }
 
-  workoutList.innerHTML = currentWorkouts
-    .map(
-      (exercise, index) => `
-        <div style="border: 1px solid #ddd; padding: 10px; margin: 5px 0; background: #f9f9f9;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <strong>${exercise.name}</strong> 
-                    <span style="color: #666;">(${exercise.muscle} - ${exercise.type})</span>
-                </div>
-                <button onclick="removeFromDay(${index})" style="background: red; color: white; border: none; padding: 5px 10px;">Remove</button>
-            </div>
-            <p><strong>Equipment:</strong> ${exercise.equipment}</p>
-            <p><strong>Difficulty:</strong> ${exercise.difficulty}</p>
-            <details>
-                <summary>Instructions</summary>
-                <p>${exercise.instructions}</p>
-            </details>
-        </div>
-    `
-    )
+  const list = Array.from(availableEquipment).sort();
+  host.innerHTML = list
+    .map((eq) => {
+      const checked = selectedEquipment.has(eq) ? "checked" : "";
+      const pretty =
+        eq.charAt(0).toUpperCase() + eq.slice(1).replace(/_/g, " ");
+      return (
+        "<label>" +
+        '<input type="checkbox" value="' +
+        eq +
+        '" ' +
+        checked +
+        " onchange=\"toggleEquipment('" +
+        eq.replace(/'/g, "\\'") +
+        "')\">" +
+        " " +
+        pretty +
+        "</label><br>"
+      );
+    })
     .join("");
+
+  const allBtn = $("#equipAllBtn");
+  const noneBtn = $("#equipNoneBtn");
+  if (allBtn) {
+    allBtn.onclick = () => {
+      selectedEquipment = new Set(availableEquipment);
+      renderEquipmentFilter();
+      searchExercises();
+    };
+  }
+  if (noneBtn) {
+    noneBtn.onclick = () => {
+      clearEquipmentFilter();
+    };
+  }
 }
 
-// Remove exercise from current day
-function removeFromDay(index) {
-  const removedExercise = workoutPlan[currentDay][index];
-  workoutPlan[currentDay].splice(index, 1);
-  updateWorkoutDisplay();
-  showMessage(
-    `${removedExercise.name} removed from ${currentDay} day`,
-    "success"
+function toggleEquipment(eq) {
+  if (selectedEquipment.has(eq)) selectedEquipment.delete(eq);
+  else selectedEquipment.add(eq);
+  searchExercises();
+}
+
+function clearEquipmentFilter() {
+  selectedEquipment.clear();
+  const cbs = document.querySelectorAll(
+    '#equipmentFilter input[type="checkbox"]'
+  );
+  cbs.forEach((cb) => (cb.checked = false));
+  searchExercises();
+}
+
+function filterBySelectedEquipment(exercises) {
+  if (selectedEquipment.size === 0) return exercises;
+  return exercises.filter(
+    (ex) => ex.equipment && selectedEquipment.has(String(ex.equipment))
   );
 }
 
-// Show success/error messages
-function showMessage(message, type) {
-  // Remove existing messages
-  clearMessages();
+/* ========== Live text buffer for TXT export ========== */
+let formattedPlanText = "";
 
-  const messageDiv = document.createElement("div");
-  messageDiv.className = `message ${type}`;
-  messageDiv.textContent = message;
+const DAY_ORDER = ["push", "pull", "legs", "upper", "lower", "fullbody"];
+const DAY_LABEL = {
+  push: "Push Day",
+  pull: "Pull Day",
+  legs: "Legs Day",
+  upper: "Upper Body",
+  lower: "Lower Body",
+  fullbody: "Full Body",
+};
 
-  // Style the message
-  messageDiv.style.padding = "10px";
-  messageDiv.style.margin = "10px 0";
-  messageDiv.style.borderRadius = "5px";
-  messageDiv.style.textAlign = "center";
+function rebuildFormattedPlanText() {
+  const lines = [];
+  lines.push("Workout Plan");
+  lines.push("============");
+  lines.push("");
 
-  if (type === "success") {
-    messageDiv.style.background = "#d4edda";
-    messageDiv.style.color = "#155724";
-    messageDiv.style.border = "1px solid #c3e6cb";
-  } else if (type === "error") {
-    messageDiv.style.background = "#f8d7da";
-    messageDiv.style.color = "#721c24";
-    messageDiv.style.border = "1px solid #f5c6cb";
-  } else if (type === "info") {
-    messageDiv.style.background = "#d1ecf1";
-    messageDiv.style.color = "#0c5460";
-    messageDiv.style.border = "1px solid #bee5eb";
-  }
+  DAY_ORDER.forEach((key) => {
+    const list = workoutPlan[key] || [];
+    lines.push(DAY_LABEL[key] || key);
+    lines.push("------------");
+    if (list.length === 0) {
+      lines.push("  (no exercises)");
+      lines.push("");
+      return;
+    }
+    list.forEach((ex, i) => {
+      const name = ex.name || ex.exercise || "Exercise";
+      const meta = [
+        ex.type ? "Type: " + ex.type : "",
+        ex.muscle ? "Muscle: " + ex.muscle : "",
+        ex.equipment ? "Equipment: " + ex.equipment : "",
+        ex.difficulty ? "Difficulty: " + ex.difficulty : "",
+      ]
+        .filter(Boolean)
+        .join(" | ");
 
-  // Add to page
-  searchResults.parentNode.insertBefore(messageDiv, searchResults);
-
-  // Auto-remove message after 3 seconds (except for info messages during search)
-  if (type !== "info") {
-    setTimeout(() => {
-      if (messageDiv.parentNode) {
-        messageDiv.remove();
+      lines.push(i + 1 + ". " + name);
+      if (meta) lines.push("   " + meta);
+      if (ex.instructions) {
+        const inst = String(ex.instructions)
+          .replace(/\r?\n/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        if (inst) lines.push("   Instructions: " + inst);
       }
-    }, 3000);
+      lines.push("");
+    });
+  });
+
+  formattedPlanText = lines.join("\n");
+}
+
+/* ========== TXT export ========== */
+function downloadTextFile(filename, text) {
+  const element = document.createElement("a");
+  element.setAttribute(
+    "href",
+    "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+  );
+  element.setAttribute("download", filename);
+  element.style.display = "none";
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
+function exportPlanTXT() {
+  if (!formattedPlanText.trim()) {
+    alert("Your plan is empty. Add exercises first.");
+    return;
+  }
+  const filename =
+    "workout-plan-" + new Date().toISOString().slice(0, 10) + ".txt";
+  downloadTextFile(filename, formattedPlanText);
+}
+
+/* ========== Search using your server API (Axios) ========== */
+async function searchExercises() {
+  const name = $("#searchQuery") ? $("#searchQuery").value : "";
+  const type = $("#filterType") ? $("#filterType").value : "";
+  const muscle = $("#filterMuscle") ? $("#filterMuscle").value : "";
+  const difficulty = $("#filterDifficulty") ? $("#filterDifficulty").value : "";
+
+  const params = {};
+  if (name) params.name = name;
+  if (type) params.type = type;
+  if (muscle) params.muscle = muscle;
+  if (difficulty) params.difficulty = difficulty;
+
+  try {
+    showMessage("Searching exercises...", "info");
+    const { data } = await axios.get("/api/exercises/search", { params });
+    let exercises = Array.isArray(data) ? data : [];
+    exercises = filterBySelectedEquipment(exercises);
+    displayExercises(exercises);
+  } catch (err) {
+    console.error("Error searching exercises:", err);
+    showMessage("Error searching exercises. Please try again.", "error");
   }
 }
 
-// Clear all messages
-function clearMessages() {
-  const messages = document.querySelectorAll(".message");
-  messages.forEach((msg) => msg.remove());
+/* ========== Render search results ========== */
+function displayExercises(exercises) {
+  clearMessages();
+  const searchResults = $("#searchResults");
+  if (!searchResults) return;
+
+  if (!exercises.length) {
+    searchResults.innerHTML =
+      "<p>No exercises found. Try adjusting your search criteria or gear filter.</p>";
+    return;
+  }
+
+  searchResults.innerHTML =
+    "<h3>Search Results:</h3>" +
+    exercises
+      .map((ex) => {
+        const n = ex.name || "Exercise";
+        const t = ex.type || "";
+        const m = ex.muscle || "";
+        const e = ex.equipment || "";
+        const d = ex.difficulty || "";
+        const instr = (ex.instructions || "").replace(/'/g, "\\'");
+        const buttonLabel = "Add to " + cap(currentDay);
+        return (
+          "<div style='border:1px solid #ccc; padding:10px; margin:8px 0;'>" +
+          "<h4>" +
+          n +
+          "</h4>" +
+          "<p><strong>Type:</strong> " +
+          t +
+          "</p>" +
+          "<p><strong>Muscle:</strong> " +
+          m +
+          "</p>" +
+          "<p><strong>Equipment:</strong> " +
+          e +
+          "</p>" +
+          "<p><strong>Difficulty:</strong> " +
+          d +
+          "</p>" +
+          "<p><strong>Instructions:</strong> " +
+          (ex.instructions || "") +
+          "</p>" +
+          "<button onclick=\"addToCurrentDay('" +
+          n.replace(/'/g, "\\'") +
+          "', '" +
+          t.replace(/'/g, "\\'") +
+          "', '" +
+          m.replace(/'/g, "\\'") +
+          "', '" +
+          String(e).replace(/'/g, "\\'") +
+          "', '" +
+          d.replace(/'/g, "\\'") +
+          "', '" +
+          instr +
+          "')\">" +
+          buttonLabel +
+          "</button>" +
+          "</div>"
+        );
+      })
+      .join("");
 }
 
-// Export workout plan (bonus feature)
-function exportWorkoutPlan() {
-  const plan = {
-    workoutPlan: workoutPlan,
-    createdAt: new Date().toISOString(),
-  };
+/* ========== Event wiring and bootstrap ========== */
+document.addEventListener("DOMContentLoaded", async function () {
+  const searchBtn = $("#searchBtn");
+  if (searchBtn) searchBtn.addEventListener("click", searchExercises);
 
-  const dataStr = JSON.stringify(plan, null, 2);
-  const dataBlob = new Blob([dataStr], { type: "application/json" });
+  const searchQuery = $("#searchQuery");
+  if (searchQuery) {
+    searchQuery.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") searchExercises();
+    });
+  }
 
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(dataBlob);
-  link.download = "workout-plan.json";
-  link.click();
-}
+  const dayTabs = document.querySelectorAll(".day-tab");
+  dayTabs.forEach((tab) => {
+    tab.addEventListener("click", function () {
+      switchDay(this.dataset.day);
+    });
+  });
+
+  const typeSel = $("#filterType");
+  const muscleSel = $("#filterMuscle");
+  const diffSel = $("#filterDifficulty");
+  if (typeSel) typeSel.addEventListener("change", searchExercises);
+  if (muscleSel) muscleSel.addEventListener("change", searchExercises);
+  if (diffSel) diffSel.addEventListener("change", searchExercises);
+
+  const exportBtn = $("#exportTxtBtn");
+  if (exportBtn) exportBtn.addEventListener("click", exportPlanTXT);
+
+  updateWorkoutDisplay();
+
+  await loadEquipmentList();
+  selectedEquipment = new Set(availableEquipment);
+  renderEquipmentFilter();
+
+  searchExercises();
+  rebuildFormattedPlanText();
+});
