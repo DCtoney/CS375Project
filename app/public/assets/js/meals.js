@@ -48,47 +48,45 @@ document.addEventListener("DOMContentLoaded", () => {
             const mealList = document.getElementById("mealList");
 
             if (!result.items || result.items.length === 0) {
-            mealList.innerHTML = "<tr><td colspan='12'>No nutrition data found for this meal.</td></tr>";
-            return;
+                mealList.innerHTML = "<tr><td colspan='12'>No nutrition data found for this meal.</td></tr>";
+                return;
             }
 
-            const item = result.items[0]; // Get first match
+            result.items.forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.calories}</td>
+                    <td>${item.serving_size_g}</td>
+                    <td>${item.fat_total_g}</td>
+                    <td>${item.fat_saturated_g}</td>
+                    <td>${item.protein_g}</td>
+                    <td>${item.sodium_mg}</td>
+                    <td>${item.potassium_mg}</td>
+                    <td>${item.cholesterol_mg}</td>
+                    <td>${item.carbohydrates_total_g}</td>
+                    <td>${item.fiber_g}</td>
+                    <td>${item.sugar_g}</td>
+                `;
+                mealList.appendChild(row);
 
-            const row = document.createElement("tr");
-            row.innerHTML = `
-            <td>${item.name}</td>
-            <td>${item.calories}</td>
-            <td>${item.serving_size_g}</td>
-            <td>${item.fat_total_g}</td>
-            <td>${item.fat_saturated_g}</td>
-            <td>${item.protein_g}</td>
-            <td>${item.sodium_mg}</td>
-            <td>${item.potassium_mg}</td>
-            <td>${item.cholesterol_mg}</td>
-            <td>${item.carbohydrates_total_g}</td>
-            <td>${item.fiber_g}</td>
-            <td>${item.sugar_g}</td>
-            `;
-
-            mealList.appendChild(row);
-
-            totalCalories += Math.round(item.calories);
-            updateCalorieDisplay();
-
-            currentDayMeals.push({
-                name: item.name,
-                calories: item.calories,
-                serving_size_g: item.serving_size_g,
-                fat_total_g: item.fat_total_g,
-                fat_saturated_g: item.fat_saturated_g,
-                protein_g: item.protein_g,
-                sodium_mg: item.sodium_mg,
-                potassium_mg: item.potassium_mg,
-                cholesterol_mg: item.cholesterol_mg,
-                carbohydrates_total_g: item.carbohydrates_total_g,
-                fiber_g: item.fiber_g,
-                sugar_g: item.sugar_g
+                totalCalories += Math.round(item.calories);
+                currentDayMeals.push({
+                    name: item.name,
+                    calories: item.calories,
+                    serving_size_g: item.serving_size_g,
+                    fat_total_g: item.fat_total_g,
+                    fat_saturated_g: item.fat_saturated_g,
+                    protein_g: item.protein_g,
+                    sodium_mg: item.sodium_mg,
+                    potassium_mg: item.potassium_mg,
+                    cholesterol_mg: item.cholesterol_mg,
+                    carbohydrates_total_g: item.carbohydrates_total_g,
+                    fiber_g: item.fiber_g,
+                    sugar_g: item.sugar_g
+                });
             });
+            updateCalorieDisplay();
         })
         .catch(error => {
             console.error(error);
