@@ -114,7 +114,7 @@ app.get("/api/nutrition", async (req, res) => {
     return res.status(400).json({ error: "Missing meal query" });
   }
 
-  const url = `https://${env.nutrition_API_url}?query=${encodeURIComponent(meal)}`;
+  const url = `https://${env.nutrition_API_url}${meal}`;
   console.log("Requesting:", url);
 
   try {

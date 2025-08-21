@@ -48,8 +48,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const mealList = document.getElementById("mealList");
 
             if (!result.items || result.items.length === 0) {
-                mealList.innerHTML = "<tr><td colspan='12'>No nutrition data found for this meal.</td></tr>";
+                if (mealList.children.length === 0){
+                    mealList.innerHTML = "<tr class = 'no-data' ><td colspan='12'>No nutrition data found for this meal.</td></tr>";
+                }
                 return;
+            }
+
+            let noDataRow = mealList.querySelector(".no-data");
+            if (noDataRow) {
+                mealList.removeChild(noDataRow);
             }
 
             result.items.forEach(item => {
@@ -87,6 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
             updateCalorieDisplay();
+            localStorage.setItem("currentDayMeals", JSON.stringify(currentDayMeals));   
+            localStorage.setItem("totalCalories", totalCalories);
         })
         .catch(error => {
             console.error(error);
@@ -141,48 +150,50 @@ document.addEventListener("DOMContentLoaded", () => {
         totalCalories = 0;
         currentDayMeals = [];
         updateCalorieDisplay();
+
+        localStorage.setItem("allDayData", JSON.stringify(allDayData));
     });
 
     document.getElementById("downloadDay").addEventListener("click", () => {
         let allDayData = JSON.parse(localStorage.getItem("allDayData")) || [];
 
-    if (allDayData.length === 0) {
-        alert("No day data to download.");
-        return;
-    }
+        if (allDayData.length === 0) {
+            alert("No day data to download.");
+            return;
+        }
 
-    // Load user profile (from calorie.js)
-    let profileData = JSON.parse(localStorage.getItem("userProfile")) || {
-        age: null,
-        gender: null,
-        height: null,
-        weight: null,
-        activity: null,
-        dailyCalories: null
-    };
+        // Load user profile (from calorie.js)
+        let profileData = JSON.parse(localStorage.getItem("userProfile")) || {
+            age: null,
+            gender: null,
+            height: null,
+            weight: null,
+            activity: null,
+            dailyCalories: null
+        };
 
-    // Load workout plan (from exercise.js)
-    let workouts = JSON.parse(localStorage.getItem("workoutPlan")) || {};
+        // Load workout plan (from exercise.js)
+        let workouts = JSON.parse(localStorage.getItem("workoutPlan")) || {};
 
-    // Build the full export object
-    let exportData = {
-        user: profileData,
-        history: allDayData,
-        workouts: workouts
-    };
+        // Build the full export object
+        let exportData = {
+            user: profileData,
+            history: allDayData,
+            workouts: workouts
+        };
 
-    // Download JSON
-    let blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-    let url = URL.createObjectURL(blob);
-    let link = document.createElement("a");
-    link.href = url;
-    link.download = "health_log_" + new Date().toISOString().split("T")[0] + ".json";
+        // Download JSON
+        let blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+        let url = URL.createObjectURL(blob);
+        let link = document.createElement("a");
+        link.href = url;
+        link.download = "health_log_" + new Date().toISOString().split("T")[0] + ".json";
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    });
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        });
 
     updateCalorieDisplay();
 
@@ -195,6 +206,103 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     loadUserProfile();
+
+    function loadFromStorage() {
+        // Load ongoing meals (for current day)
+        const storedMeals = JSON.parse(localStorage.getItem("currentDayMeals")) || [];
+        const storedCalories = parseFloat(localStorage.getItem("totalCalories")) || 0;
+
+        currentDayMeals = storedMeals;
+        totalCalories = storedCalories;
+
+        if (storedMeals.length > 0) {
+            // Clear placeholder if it exists
+            let noDataRow = mealList.querySelector(".no-data");
+            if (noDataRow) mealList.removeChild(noDataRow);
+
+            storedMeals.forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.calories}</td>
+                    <td>${item.serving_size_g}</td>
+                    <td>${item.fat_total_g}</td>
+                    <td>${item.fat_saturated_g}</td>
+                    <td>${item.protein_g}</td>
+                    <td>${item.sodium_mg}</td>
+                    <td>${item.potassium_mg}</td>
+                    <td>${item.cholesterol_mg}</td>
+                    <td>${item.carbohydrates_total_g}</td>
+                    <td>${item.fiber_g}</td>
+                    <td>${item.sugar_g}</td>
+                `;
+                mealList.appendChild(row);
+            });
+        }
+
+        // Load completed day history
+        const storedHistory = JSON.parse(localStorage.getItem("allDayData")) || [];
+        allDayData = storedHistory;
+
+        if (storedHistory.length > 0) {
+            mealHistory.innerHTML = "";
+            storedHistory.forEach(day => {
+                const table = document.createElement("table");
+                table.innerHTML = `
+                <thead>
+                    <tr>
+                    <th>Name</th>
+                    <th>Calories</th>
+                    <th>Serving Size (g)</th>
+                    <th>Total Fat (g)</th>
+                    <th>Saturated Fat (g)</th>
+                    <th>Protein (g)</th>
+                    <th>Sodium (mg)</th>
+                    <th>Potassium (mg)</th>
+                    <th>Cholesterol (mg)</th>
+                    <th>Total Carbohydrates (g)</th>
+                    <th>Fiber (g)</th>
+                    <th>Sugar (g)</th>
+                    </tr>
+                </thead>`;
+
+                const body = document.createElement("tbody");
+                day.meals.forEach(meal => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                    <td>${meal.name}</td>
+                    <td>${meal.calories}</td>
+                    <td>${meal.serving_size_g}</td>
+                    <td>${meal.fat_total_g}</td>
+                    <td>${meal.fat_saturated_g}</td>
+                    <td>${meal.protein_g}</td>
+                    <td>${meal.sodium_mg}</td>
+                    <td>${meal.potassium_mg}</td>
+                    <td>${meal.cholesterol_mg}</td>
+                    <td>${meal.carbohydrates_total_g}</td>
+                    <td>${meal.fiber_g}</td>
+                    <td>${meal.sugar_g}</td>
+                    `;
+                    body.appendChild(row);
+                });
+
+                table.appendChild(body);
+
+                const dayLabel = document.createElement("h3");
+                dayLabel.textContent = `Meals on ${day.date} (Total Calories: ${day.totalCalories})`;
+
+                const historySection = document.createElement("div");
+                historySection.appendChild(dayLabel);
+                historySection.appendChild(table);
+
+                mealHistory.appendChild(historySection);
+            });
+        }
+
+        updateCalorieDisplay();
+    }
+
+    loadFromStorage();
 
     document.getElementById("importJson").addEventListener("click", () => {
         document.getElementById("importFile").click();
