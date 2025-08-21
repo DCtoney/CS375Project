@@ -1,5 +1,3 @@
-import { downloadHealthLog } from "./Utils";
-
 document.addEventListener("DOMContentLoaded", () => {
     let mealList = document.getElementById("mealList");
     let mealInput = document.getElementById("meal");
@@ -14,9 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateCalorieDisplay() {
         let target = parseInt(localStorage.getItem("dailyCalries")) || 2000;
-        let dif = totalCalories - target;
+        let diff = totalCalories - target;
 
+        let display = document.getElementById("dailyTotal");
         let calorieClass = "calorie-under";
+
+        display.classList.remove("calorie-under", "calorie-good", "calorie-warning", "calorie-over", "calorie-high");
 
         if (Math.abs(diff) <= 50) {
             calorieClass = "calorie-good";
@@ -28,8 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
             calorieClass = "calorie-high";
         }
 
-        totalCaloriesElement.classList.add(calorieClass);
-        totalCaloriesElement.textContent = `Total Calories: ${totalCalories.toFixed(1)} / ${targetCalories}`;
+        display.classList.add(calorieClass);
+        display.textContent = `Total Calories: ${totalCalories.toFixed(1)} / ${target}`;
     };
 
     document.getElementById("addMeal").addEventListener("click", () => {
@@ -144,7 +145,46 @@ document.addEventListener("DOMContentLoaded", () => {
         updateCalorieDisplay();
     });
 
-    document.getElementById("downloadDay").addEventListener("click", downloadHealthLog);
+    document.getElementById("downloadDay").addEventListener("click", () => {
+        let allDayData = JSON.parse(localStorage.getItem("allDayData")) || [];
+
+    if (allDayData.length === 0) {
+        alert("No day data to download.");
+        return;
+    }
+
+    // Load user profile (from calorie.js)
+    let profileData = JSON.parse(localStorage.getItem("userProfile")) || {
+        age: null,
+        gender: null,
+        height: null,
+        weight: null,
+        activity: null,
+        dailyCalories: null
+    };
+
+    // Load workout plan (from exercise.js)
+    let workouts = JSON.parse(localStorage.getItem("workoutPlan")) || {};
+
+    // Build the full export object
+    let exportData = {
+        user: profileData,
+        history: allDayData,
+        workouts: workouts
+    };
+
+    // Download JSON
+    let blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    let url = URL.createObjectURL(blob);
+    let link = document.createElement("a");
+    link.href = url;
+    link.download = "health_log_" + new Date().toISOString().split("T")[0] + ".json";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    });
 
     updateCalorieDisplay();
 

@@ -3,16 +3,10 @@ const express = require("express");
 const axios = require("axios");
 const app = express();
 const env = require("../env.json");
-const axios = require("axios");
 
-const app = express();
 const port = 3000;
 const hostname = "localhost";
 
-const env = require("../env.json");
-
-const nutritionKey = env.nutrition_api_key; // (unused here)
-const calorieKey = env.calories_API_key; // (unused here)
 const exerciseApiKey = env.exercise_api_key; // used below
 
 // Password for adding workouts (you can change this)
