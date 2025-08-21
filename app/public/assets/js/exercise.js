@@ -5,6 +5,8 @@
    - Exports the plan as a .txt file
 */
 
+import { downloadHealthLog } from "./Utils";
+
 /* ========== Small utilities ========== */
 function $(q) {
   return document.querySelector(q);
@@ -367,6 +369,8 @@ function displayExercises(exercises) {
       })
       .join("");
 }
+
+document.getElementById("downloadDayExercise").addEventListener("click", downloadHealthLog);
 
 /* ========== Event wiring and bootstrap ========== */
 document.addEventListener("DOMContentLoaded", async function () {

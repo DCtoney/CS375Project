@@ -1,3 +1,5 @@
+import { downloadHealthLog } from "./Utils";
+
 document.addEventListener("DOMContentLoaded", () => {
     let mealList = document.getElementById("mealList");
     let mealInput = document.getElementById("meal");
@@ -14,14 +16,20 @@ document.addEventListener("DOMContentLoaded", () => {
         let target = parseInt(localStorage.getItem("dailyCalries")) || 2000;
         let dif = totalCalories - target;
 
-        let color = "black";
-        if (dif >= 150) color = "red";
-        else if (dif >= 100) color = "orange";
-        else if (dif >= 50) color = "yellow";
-        else if (dif >= 0) color = "green";
+        let calorieClass = "calorie-under";
 
-        calorieDisplay.textContent = `Total Calories: ${totalCalories} / Target: ${target}`;
-        calorieDisplay.style.color = color;
+        if (Math.abs(diff) <= 50) {
+            calorieClass = "calorie-good";
+        } else if (diff > 50 && diff <= 100) {
+            calorieClass = "calorie-warning";
+        } else if (diff > 100 && diff <= 150) {
+            calorieClass = "calorie-over";
+        } else if (diff > 150) {
+            calorieClass = "calorie-high";
+        }
+
+        totalCaloriesElement.classList.add(calorieClass);
+        totalCaloriesElement.textContent = `Total Calories: ${totalCalories.toFixed(1)} / ${targetCalories}`;
     };
 
     document.getElementById("addMeal").addEventListener("click", () => {
@@ -136,39 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateCalorieDisplay();
     });
 
-    document.getElementById("downloadDay").addEventListener("click", () => {
-        if (allDayData.length === 0) {
-            alert("No day data to download.");
-            return;
-        }
-
-        let profileData = JSON.parse(localStorage.getItem("userProfile")) || {
-            age: null,
-            gender: null,
-            height: null,
-            weight: null,
-            activity: null,
-            dailyCalories: null
-        };
-
-        let exportData = {
-            user: profileData,
-            history: allDayData
-        };
-
-        let blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-        let url = URL.createObjectURL(blob);
-        let link = document.createElement("a");
-        link.href = url;
-
-        let filename = "meal_log_" + new Date().toISOString().split("T")[0] + ".json";
-        link.download = filename;
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    });
+    document.getElementById("downloadDay").addEventListener("click", downloadHealthLog);
 
     updateCalorieDisplay();
 
@@ -258,6 +234,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     mealHistory.appendChild(historySection);
                 });
+            }
+
+            if (imported.workouts) {
+                localStorage.setItem("workoutPlan", JSON.stringify(imported.workouts));
+                window.workoutPlan = imported.workouts;
             }
 
             updateCalorieDisplay();
