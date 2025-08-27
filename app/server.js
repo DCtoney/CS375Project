@@ -4,8 +4,7 @@ const axios = require("axios");
 const app = express();
 const env = require("../env.json");
 
-const port = 3000;
-const hostname = "localhost";
+const port = process.env.PORT || 3000;
 
 const exerciseApiKey = env.exercise_api_key; // used below
 
@@ -18,9 +17,12 @@ pool.connect().then(function () {
   console.log(`Connected to database ${env.database}`);
 });
 
-app.use(express.json());
-app.use(express.static("public"));
 app.use(express.json()); // To parse JSON bodies
+app.use(express.static(path.join(__dirname,"app/public")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 
 // ——— API Routes for exercises using API Ninjas (axios version) ———
 
@@ -102,8 +104,8 @@ app.get("/api/exercises/type/:type", async (req, res) => {
   }
 });
 
-app.listen(port, hostname, () => {
-  console.log(`Listening at: http://${hostname}:${port}`);
+app.listen(port, process.env.PORT || 3000, () => {
+  console.log(`Listening at: http://${process.env.PORT || 3000}:${port}`);
 });
 
 // GET for Nutrition Data
