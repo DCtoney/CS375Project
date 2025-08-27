@@ -21,7 +21,11 @@ app.use(express.json()); // To parse JSON bodies
 app.use(express.static(path.join(__dirname,"app/public")));
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile(path.join(__dirname, "../index.html"));
+});
+
+app.listen(port, () => {
+  console.log(`Listening at: ${port}`);
 });
 
 // ——— API Routes for exercises using API Ninjas (axios version) ———
@@ -102,10 +106,6 @@ app.get("/api/exercises/type/:type", async (req, res) => {
       res.status(500).json({ error: "Internal server error." });
     }
   }
-});
-
-app.listen(port, process.env.PORT || 3000, () => {
-  console.log(`Listening at: http://${process.env.PORT || 3000}:${port}`);
 });
 
 // GET for Nutrition Data
