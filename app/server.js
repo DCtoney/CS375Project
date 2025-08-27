@@ -1,15 +1,13 @@
+const path = require("path");
 const pg = require("pg");
 const express = require("express");
 const axios = require("axios");
-const app = express();
 const env = require("../env.json");
 
+const app = express();
 const port = process.env.PORT || 3000;
 
-const exerciseApiKey = env.exercise_api_key; // used below
-
-// Password for adding workouts (you can change this)
-const ADMIN_PASSWORD = "fitness2025";
+const exerciseApiKey = env.exercise_api_key; 
 
 const Pool = pg.Pool;
 const pool = new Pool(env);
@@ -17,15 +15,11 @@ pool.connect().then(function () {
   console.log(`Connected to database ${env.database}`);
 });
 
-app.use(express.json()); // To parse JSON bodies
-app.use(express.static(path.join(__dirname,"app/public")));
+app.use(express.json()); 
+app.use(express.static(path.join(__dirname,"public")));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../index.html"));
-});
-
-app.listen(port, () => {
-  console.log(`Listening at: ${port}`);
 });
 
 // ——— API Routes for exercises using API Ninjas (axios version) ———
@@ -142,4 +136,8 @@ app.get("/api/nutrition", async (req, res) => {
       return res.status(500).json({ error: "Internal server error." });
     }
   }
+});
+
+app.listen(port, () => {
+  console.log(`Listening at: ${port}`);
 });
