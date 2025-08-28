@@ -25,4 +25,4 @@ jobs:
       # Sync files to S3 bucket
       - name: Sync website to S3
         run: |
-          aws s3 sync ./public s3://deploycs375-dantesam --delete
+          aws s3 sync ./ s3://deploycs375-dantesam --delete
