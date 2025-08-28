@@ -1,9 +1,9 @@
-name: Upload Website
+name: CS375 deploy
 
 on:
   push:
     branches:
-    - master
+    - main
 
 jobs:
   deploy:
