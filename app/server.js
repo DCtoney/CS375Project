@@ -7,8 +7,6 @@ const env = require("../env.json");
 const app = express();
 const port = process.env.PORT || 3000;
 
-const exerciseApiKey = env.exercise_api_key; 
-
 const Pool = pg.Pool;
 const pool = new Pool(env);
 pool.connect().then(function () {
@@ -39,7 +37,7 @@ app.get("/api/exercises/search", async (req, res) => {
     const apiUrl = `https://api.api-ninjas.com/v1/exercises?${params.toString()}`;
 
     const response = await axios.get(apiUrl, {
-      headers: { "X-Api-Key": exerciseApiKey },
+      headers: { "X-Api-Key": exercise_API_key },
       // timeout: 10000, // optional: add a timeout if you want
     });
 
@@ -63,7 +61,7 @@ app.get("/api/exercises/muscle/:muscle", async (req, res) => {
     const apiUrl = `https://api.api-ninjas.com/v1/exercises?muscle=${muscle}`;
 
     const response = await axios.get(apiUrl, {
-      headers: { "X-Api-Key": exerciseApiKey },
+      headers: { "X-Api-Key": exercise_API_key },
     });
 
     res.json(response.data);
@@ -86,7 +84,7 @@ app.get("/api/exercises/type/:type", async (req, res) => {
     const apiUrl = `https://api.api-ninjas.com/v1/exercises?type=${type}`;
 
     const response = await axios.get(apiUrl, {
-      headers: { "X-Api-Key": exerciseApiKey },
+      headers: { "X-Api-Key": exercise_API_key },
     });
 
     res.json(response.data);
@@ -116,7 +114,7 @@ app.get("/api/nutrition", async (req, res) => {
   try {
     const response = await axios.get(url, {
       headers: {
-        "x-api-key": env.nutrition_API_key,
+        "x-api-key": nutrition_API_key,
         "Content-type": "application/json"
       }
     });

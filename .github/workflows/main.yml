@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main 
+env:
+  nutrition_API_key: ${{ secrets.NUTRITION_API_KEY }}
+  exercise_API_key: ${{ secrets.EXERCISE_API_KEY }}
 
 jobs:
   deploy:
