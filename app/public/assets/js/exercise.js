@@ -269,15 +269,52 @@ function downloadTextFile(filename, text) {
   document.body.removeChild(element);
 }
 
+// --- PDF export (uses the same text formatting but removes instruction lines) ---
 function exportPlanTXT() {
-  if (!formattedPlanText.trim()) {
+  if (!formattedPlanText || !formattedPlanText.trim()) {
     alert("Your plan is empty. Add exercises first.");
     return;
   }
-  const filename =
-    "workout-plan-" + new Date().toISOString().slice(0, 10) + ".txt";
-  downloadTextFile(filename, formattedPlanText);
+
+  // Remove lines that begin with "Instructions:" (preserve all other formatting)
+  const textForPdf = formattedPlanText
+    .split("\n")
+    .filter((line) => !/^\s*Instructions:/i.test(line))
+    .join("\n");
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "letter" }); // 612 x 792 pt
+
+  const marginLeft = 48;
+  const marginTop  = 56;
+  const usableWidth = 612 - marginLeft * 2; // ~516pt
+  const lineHeight = 16;
+
+  // Title
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("Workout Plan", marginLeft, marginTop);
+
+  // Body
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+
+  const lines = doc.splitTextToSize(textForPdf, usableWidth);
+  let y = marginTop + 22;
+
+  for (const line of lines) {
+    if (y > 792 - marginTop) {
+      doc.addPage();
+      y = marginTop;
+    }
+    doc.text(line, marginLeft, y);
+    y += lineHeight;
+  }
+
+  const filename = "workout-plan-" + new Date().toISOString().slice(0, 10) + ".pdf";
+  doc.save(filename);
 }
+
 
 /* ========== Search using your server API (Axios) ========== */
 async function searchExercises() {
@@ -326,7 +363,7 @@ function displayExercises(exercises) {
         const e = ex.equipment || "";
         const d = ex.difficulty || "";
         const instr = (ex.instructions || "").replace(/'/g, "\\'");
-        const buttonLabel = "Add to " + cap(currentDay);
+        const buttonLabel = "Add to Day";
         return (
           "<div style='border:1px solid #ccc; padding:10px; margin:8px 0;'>" +
           "<h4>" +
