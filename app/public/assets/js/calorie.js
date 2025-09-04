@@ -2,17 +2,42 @@ document.addEventListener("DOMContentLoaded", () => {
     let profile = JSON.parse(localStorage.getItem("userProfile"));
     let isImperial = false;
 
-    document.getElementById("unitToggle").addEventListener("click", () => {
+    let heightInput = document.getElementById("height");
+    let weightInput = document.getElementById("weight");
+    let heightLabel = document.getElementById("heightLabel");
+    let weightLabel = document.getElementById("weightLabel");
+    let unitToggle = document.getElementById("unitToggle"); 
+
+    unitToggle.addEventListener("click", (e) => {
+        e.preventDefault(); 
+
+        let height = parseFloat(heightInput.value);
+        let weight = parseFloat(weightInput.value);
+
         isImperial = !isImperial;
 
-        if (isImperial) {
-            heightLabel.textContent = "Height (inches):";
-            weightLabel.textContent = "Weight (lbs):";
-            unitToggle.textContent = "Switch to Metric";
+        if (isImperial) {   
+            heightLabel.textContent = 'Height (inches):';
+            weightLabel.textContent = 'Weight (lbs):';
+            unitToggle.textContent = 'Switch to Metric';
+
+            if (!isNaN(height)) {
+                heightInput.value = Math.round(height / 2.54);
+            }
+            if (!isNaN(weight)) {
+                weightInput.value = Math.round(weight * 2.205);
+            }
         } else {
-            heightLabel.textContent = "Height (cm):";
-            weightLabel.textContent = "Weight (kg):";
-            unitToggle.textContent = "Switch to Imperial";
+            heightLabel.textContent = 'Height (cm):';
+            weightLabel.textContent = 'Weight (kg):';
+            unitToggle.textContent = 'Switch to Imperial';
+
+            if (!isNaN(height)) {
+                heightInput.value = Math.round(height * 2.54);
+            }
+            if (!isNaN(weight)) {
+                weightInput.value = Math.round(weight / 2.205);
+            }
         }
     });
 
@@ -81,16 +106,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         isImperial = profile.isImperial || false;
         if (isImperial) {
-            heightLabel.textContent = "Height (inches):";
-            weightLabel.textContent = "Weight (lbs):";
-            unitToggle.textContent = "Switch to Metric";
+            heightLabel.textContent = 'Height (inches):';
+            weightLabel.textContent = 'Weight (lbs):';
+            unitToggle.textContent = 'Switch to Metric';
 
             heightInput.value = (profile.height / 2.54).toFixed(1);
             weightInput.value = (profile.weight / 0.453592).toFixed(1);
         } else {
-            heightLabel.textContent = "Height (cm):";
-            weightLabel.textContent = "Weight (kg):";
-            unitToggle.textContent = "Switch to Imperial";
+            heightLabel.textContent = 'Height (cm):';
+            weightLabel.textContent = 'Weight (kg):';
+            unitToggle.textContent = 'Switch to Imperial';
 
             heightInput.value = profile.height;
             weightInput.value = profile.weight;
