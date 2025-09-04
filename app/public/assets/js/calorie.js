@@ -1,5 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
     let profile = JSON.parse(localStorage.getItem("userProfile"));
+    let isImperial = false;
+
+    document.getElementById("unitToggle").addEventListener("click", () => {
+        isImperial = !isImperial;
+
+        if (isImperial) {
+            heightLabel.textContent = "Height (inches):";
+            weightLabel.textContent = "Weight (lbs):";
+            unitToggle.textContent = "Switch to Metric";
+        } else {
+            heightLabel.textContent = "Height (cm):";
+            weightLabel.textContent = "Weight (kg):";
+            unitToggle.textContent = "Switch to Imperial";
+        }
+    });
 
     document.getElementById("calculate").addEventListener("click", () => {
         let age = parseInt(document.getElementById("age").value, 10);
@@ -11,6 +26,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isNaN(age) || isNaN(height) || isNaN(weight)) {
             document.getElementById("result").innerHTML = "Please enter valid numbers.";
             return;
+        }
+
+        if (isImperial) {
+            height = height * 2.54; 
+            weight = weight * 0.453592; 
         }
 
         // Step 1: Calculate BMR
@@ -57,9 +77,24 @@ document.addEventListener("DOMContentLoaded", () => {
     if (profile) {
         document.getElementById("age").value = profile.age;
         document.getElementById("gender").value = profile.gender;
-        document.getElementById("height").value = profile.height;
-        document.getElementById("weight").value = profile.weight;
         document.getElementById("activity").value = profile.activity;
+
+        isImperial = profile.isImperial || false;
+        if (isImperial) {
+            heightLabel.textContent = "Height (inches):";
+            weightLabel.textContent = "Weight (lbs):";
+            unitToggle.textContent = "Switch to Metric";
+
+            heightInput.value = (profile.height / 2.54).toFixed(1);
+            weightInput.value = (profile.weight / 0.453592).toFixed(1);
+        } else {
+            heightLabel.textContent = "Height (cm):";
+            weightLabel.textContent = "Weight (kg):";
+            unitToggle.textContent = "Switch to Imperial";
+
+            heightInput.value = profile.height;
+            weightInput.value = profile.weight;
+        }
 
         document.getElementById("result").innerHTML = 
         `Your daily calorie needs are approximately ${profile.amr.toFixed(2)} calories.`;

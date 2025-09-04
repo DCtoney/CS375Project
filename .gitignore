@@ -6,3 +6,11 @@ env.json
 env.json
 env.json
 env.json
+
+# amplify
+.amplify
+amplify_outputs*
+amplifyconfiguration*
+app/public/assets/.DS_Store
+app/.DS_Store
+.DS_Store

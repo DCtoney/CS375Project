@@ -1,16 +1,11 @@
+const path = require("path");
 const pg = require("pg");
 const express = require("express");
 const axios = require("axios");
-const app = express();
 const env = require("../env.json");
 
-const port = 3000;
-const hostname = "localhost";
-
-const exerciseApiKey = env.exercise_api_key; // used below
-
-// Password for adding workouts (you can change this)
-const ADMIN_PASSWORD = "fitness2025";
+const app = express();
+const port = process.env.PORT || 3000;
 
 const Pool = pg.Pool;
 const pool = new Pool(env);
@@ -18,9 +13,12 @@ pool.connect().then(function () {
   console.log(`Connected to database ${env.database}`);
 });
 
-app.use(express.json());
-app.use(express.static("public"));
-app.use(express.json()); // To parse JSON bodies
+app.use(express.json()); 
+app.use(express.static(path.join(__dirname,"public")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../index.html"));
+});
 
 // ——— API Routes for exercises using API Ninjas (axios version) ———
 
@@ -39,7 +37,7 @@ app.get("/api/exercises/search", async (req, res) => {
     const apiUrl = `https://api.api-ninjas.com/v1/exercises?${params.toString()}`;
 
     const response = await axios.get(apiUrl, {
-      headers: { "X-Api-Key": exerciseApiKey },
+      headers: { "X-Api-Key": env.exercise_API_key },
       // timeout: 10000, // optional: add a timeout if you want
     });
 
@@ -63,7 +61,7 @@ app.get("/api/exercises/muscle/:muscle", async (req, res) => {
     const apiUrl = `https://api.api-ninjas.com/v1/exercises?muscle=${muscle}`;
 
     const response = await axios.get(apiUrl, {
-      headers: { "X-Api-Key": exerciseApiKey },
+      headers: { "X-Api-Key": env.exercise_API_key },
     });
 
     res.json(response.data);
@@ -86,7 +84,7 @@ app.get("/api/exercises/type/:type", async (req, res) => {
     const apiUrl = `https://api.api-ninjas.com/v1/exercises?type=${type}`;
 
     const response = await axios.get(apiUrl, {
-      headers: { "X-Api-Key": exerciseApiKey },
+      headers: { "X-Api-Key": env.exercise_API_key },
     });
 
     res.json(response.data);
@@ -100,10 +98,6 @@ app.get("/api/exercises/type/:type", async (req, res) => {
       res.status(500).json({ error: "Internal server error." });
     }
   }
-});
-
-app.listen(port, hostname, () => {
-  console.log(`Listening at: http://${hostname}:${port}`);
 });
 
 // GET for Nutrition Data
@@ -140,4 +134,8 @@ app.get("/api/nutrition", async (req, res) => {
       return res.status(500).json({ error: "Internal server error." });
     }
   }
+});
+
+app.listen(port, () => {
+  console.log(`Listening at: ${port}`);
 });
